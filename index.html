@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<title>DF Compose</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#8FE0F9" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#14171a" media="(prefers-color-scheme: dark)">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="DF Compose">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<style>
+*{box-sizing:border-box}
+body{font-family:Arial,Helvetica,sans-serif;margin:0;color:#222;background:#fff;font-size:16px;-webkit-text-size-adjust:100%}
+.top{background:#EAF8FD;border-top:6px solid #8FE0F9;padding:14px 16px}
+.top h1{margin:0;font-size:20px;color:#2F7FC1}
+.top p{margin:4px 0 0;font-size:13px;color:#555}
+.wrap{padding:4px 16px 24px;max-width:640px;margin:0 auto}
+label.l{display:block;font-size:14px;font-weight:bold;color:#2F7FC1;margin:18px 0 6px}
+input[type=text],textarea,select{width:100%;padding:11px;border:1px solid #8FE0F9;border-radius:8px;font-family:Arial,Helvetica,sans-serif;font-size:16px;background:#fff;color:#222}
+textarea{height:170px;resize:vertical}
+textarea.small{height:64px}
+.seg{display:flex;gap:6px}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label{flex:1;text-align:center;border:1px solid #8FE0F9;border-radius:8px;padding:11px 4px;font-size:14px;color:#2F7FC1;background:#fff}
+.seg input:checked+label{background:#2F7FC1;color:#fff;border-color:#2F7FC1}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.chip{width:auto;padding:8px 12px;font-size:14px;border-radius:999px;background:#EAF8FD;color:#2F7FC1;border:1px solid #8FE0F9;font-weight:normal}
+.chip.on{background:#2F7FC1;color:#fff;border-color:#2F7FC1}
+.vtools{display:flex;gap:8px;align-items:center;margin-top:10px}
+.vtools button{width:auto;padding:8px 12px;font-size:14px}
+.vtools .count{margin-left:auto;font-size:13px;color:#555}
+.vbox{border:1px solid #8FE0F9;border-radius:8px;max-height:270px;overflow:auto;margin-top:8px;-webkit-overflow-scrolling:touch}
+.vrow{display:flex;gap:12px;align-items:flex-start;padding:10px 12px;border-bottom:1px solid #EAF8FD}
+.vrow:last-child{border-bottom:0}
+.vrow input{width:22px;height:22px;margin:2px 0 0;flex:none}
+.vrow small{color:#666;font-size:12px;overflow-wrap:anywhere}
+.vrow .sent{color:#2F7FC1;font-weight:bold}
+.hint{font-size:12px;color:#666;margin-top:5px}
+.ph{display:none;margin-top:8px;padding:9px 11px;border-radius:8px;background:#FFF4CC;color:#6b5100;font-size:13px}
+.opt{font-size:15px;margin:12px 0 0}
+.opt input{width:20px;height:20px;vertical-align:middle;margin:0 8px 2px 0}
+details{margin-top:16px}
+summary{font-size:14px;font-weight:bold;color:#2F7FC1;padding:4px 0}
+.row{display:flex;gap:8px}
+.row>div{flex:1}
+button{background:#2F7FC1;color:#fff;border:0;border-radius:8px;padding:14px 16px;font-size:16px;font-weight:bold;width:100%;font-family:Arial,Helvetica,sans-serif}
+button.light{background:#EAF8FD;color:#2F7FC1}
+button:disabled{opacity:.5}
+a{color:#2F7FC1}
+.bar{position:sticky;bottom:0;background:#fff;border-top:1px solid #EAF8FD;padding:10px 16px calc(10px + env(safe-area-inset-bottom))}
+.bar .in{max-width:640px;margin:0 auto}
+.bar .btns{display:flex;gap:10px}
+.bar .btns button{padding:13px 10px}
+#msg{font-size:14px;margin-bottom:8px}
+#msg:empty{display:none}
+#draftNote{display:none;padding:8px 16px;background:#EAF8FD;font-size:13px;color:#555}
+.ov{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.45);align-items:flex-end;justify-content:center}
+.ov.show{display:flex}
+.box{background:#fff;border-radius:14px 14px 0 0;border-top:6px solid #8FE0F9;padding:18px 16px calc(22px + env(safe-area-inset-bottom));width:100%;max-width:640px}
+.box h2{margin:0 0 8px;font-size:18px;color:#2F7FC1}
+.box .names{max-height:180px;overflow:auto;font-size:14px;background:#EAF8FD;border-radius:8px;padding:10px 12px;margin:10px 0 14px}
+.box .warn{display:none;background:#FFF4CC;color:#6b5100;border-radius:8px;padding:9px 11px;font-size:13px;margin:0 0 14px}
+.box .cb{display:flex;gap:10px}
+@media (prefers-color-scheme:dark){
+ body{background:#14171a;color:#e8eaed}
+ .top{background:#1b2a33}
+ .top h1,label.l,summary,a{color:#8FE0F9}
+ .top p,.hint,.vrow small,.vtools .count,#draftNote{color:#9aa4ad}
+ input[type=text],textarea,select{background:#1d2126;color:#e8eaed;border-color:#2F7FC1}
+ .seg label{background:#1d2126;color:#8FE0F9;border-color:#2F7FC1}
+ .seg input:checked+label{background:#2F7FC1;color:#fff}
+ .chip{background:#1b2a33;color:#8FE0F9;border-color:#2F7FC1}
+ .chip.on{background:#2F7FC1;color:#fff}
+ .vbox{border-color:#2F7FC1}
+ .vrow{border-bottom-color:#232a31}
+ .vrow .sent{color:#8FE0F9}
+ button.light{background:#1b2a33;color:#8FE0F9}
+ .bar{background:#14171a;border-top-color:#232a31}
+ #draftNote{background:#1b2a33}
+ .ph,.box .warn{background:#3a2f12;color:#f3d98b}
+ .box{background:#1d2126;color:#e8eaed}
+ .box h2{color:#8FE0F9}
+ .box .names{background:#14171a}
+}
+
+input[type=password]{width:100%;padding:11px;border:1px solid #8FE0F9;border-radius:8px;font-family:Arial,Helvetica,sans-serif;font-size:16px;background:#fff;color:#222}
+html,body{overscroll-behavior-y:contain}
+.top{position:relative;padding-top:calc(14px + env(safe-area-inset-top))}
+.top h1{padding-right:84px}
+.gear{position:absolute;right:12px;top:calc(12px + env(safe-area-inset-top));width:auto;padding:7px 11px;font-size:13px}
+#install{display:none;background:#FFF4CC;color:#6b5100;padding:10px 16px;font-size:14px}
+#install .ir{display:flex;gap:8px;align-items:center;margin-top:8px}
+#install button{width:auto;padding:9px 14px;font-size:14px}
+.sh{margin:18px 0 6px;font-size:18px;color:#2F7FC1}
+.hint2{font-size:14px;color:#555;margin:0}
+.setmsg{margin-top:12px;font-size:14px;color:#b3261e;min-height:18px}
+.vtools .light.sq{padding:8px 14px}
+@media (prefers-color-scheme:dark){
+ input[type=password]{background:#1d2126;color:#e8eaed;border-color:#2F7FC1}
+ #install{background:#3a2f12;color:#f3d98b}
+ .sh{color:#8FE0F9}
+ .hint2{color:#9aa4ad}
+ .setmsg{color:#ff8a80}
+}
+</style></head><body>
+<div class="top"><h1>Compose a message</h1><p>Same Delta Flow design as your welcome email. Nothing is sent until you confirm.</p><button class="light gear" id="gear" onclick="showSetup(true)">Settings</button></div>
+<div id="install"><span id="instText"></span><div class="ir"><button id="instBtn" style="display:none" onclick="doInstall()">Install app</button><button class="light" onclick="noInstall()">Not now</button></div></div>
+<div id="setup" class="wrap" style="display:none">
+  <h2 class="sh">Connect this phone</h2>
+  <p class="hint2">Paste the web app link and the key from your Apps Script. You only do this once. Both stay on this phone only.</p>
+  <label class="l">Web app link</label>
+  <input type="text" id="setUrl" placeholder="https://script.google.com/macros/s/.../exec" autocapitalize="off" autocorrect="off" spellcheck="false">
+  <label class="l">Key</label>
+  <input type="password" id="setKey" placeholder="xxxx-xxxx-xxxx-xxxx-xxxx-xxxx" autocapitalize="off" autocorrect="off" spellcheck="false" autocomplete="off">
+  <div class="opt"><label><input type="checkbox" id="showKey" onchange="toggleKey()">Show key</label></div>
+  <div class="setmsg" id="setMsg"></div>
+  <div style="margin-top:14px"><button id="setBtn" onclick="doConnect()">Connect</button></div>
+  <div style="margin-top:10px"><button id="setCancel" class="light" style="display:none" onclick="cancelSetup()">Cancel</button></div>
+  <div style="margin-top:26px"><button id="setOff" class="light" style="display:none" onclick="doDisconnect()">Disconnect this phone</button></div>
+</div>
+<div id="app" style="display:none">
+<div id="draftNote">Draft restored. <a href="#" onclick="discardDraft();return false">Discard it</a></div>
+<div class="wrap">
+  <label class="l">Send to</label>
+  <div class="seg">
+    <input type="radio" name="mode" id="m1" value="volunteers" checked onchange="modeChange()"><label for="m1">Volunteers</label>
+    <input type="radio" name="mode" id="m2" value="address" onchange="modeChange()"><label for="m2">One address</label>
+    <input type="radio" name="mode" id="m3" value="reply" onchange="modeChange()"><label for="m3">Reply</label>
+  </div>
+
+  <div id="volBox">
+    <div class="chips" id="chips">
+      <button class="chip on" id="f_all" onclick="setFilter('all')">All</button>
+      <button class="chip" id="f_new" onclick="setFilter('new')">Not emailed yet</button>
+      <button class="chip" id="f_sent" onclick="setFilter('sent')">Emailed</button>
+    </div>
+    <div class="vtools"><input type="text" id="q" placeholder="Search name or email" oninput="render()"></div>
+    <div class="vtools"><button class="light" onclick="selShown()">Select shown</button><button class="light" onclick="clearSel()">Clear</button><button class="light sq" id="reload" aria-label="Reload list" onclick="loadPeople()">&#8635;</button><span class="count" id="count">0 selected</span></div>
+    <div class="vbox" id="plist">Loading volunteers...</div>
+  </div>
+
+  <div id="addrBox" style="display:none">
+    <div style="margin-top:12px"><input type="text" id="address" placeholder="their@email.com" autocapitalize="off" autocorrect="off"></div>
+    <div style="margin-top:8px"><input type="text" id="addrName" placeholder="Their name (optional)"></div>
+    <div id="lookupRow" style="display:none;margin-top:10px"><button class="light" onclick="doLookup()">Find their latest email</button></div>
+    <div class="hint" id="replyHint" style="display:none">The reply stays in the same Gmail thread.</div>
+  </div>
+
+  <div id="tplBox" style="display:none">
+    <label class="l">Start from a template (optional)</label>
+    <select id="tplCat" onchange="tplCatChange()"></select>
+    <select id="tplPick" style="margin-top:8px"></select>
+    <button class="light" style="margin-top:8px" onclick="useTemplate()">Use this template</button>
+    <div class="hint" id="tplNote"></div>
+  </div>
+
+  <div id="subjectBox">
+    <label class="l">Subject</label>
+    <input type="text" id="subject" placeholder="Subject line">
+  </div>
+
+  <label class="l">Message</label>
+  <textarea id="message" placeholder="Write your message here. Leave a blank line between paragraphs."></textarea>
+  <div class="hint">Type {name} anywhere to insert each person's name. Links turn clickable automatically.</div>
+  <div class="ph" id="ph"></div>
+
+  <div class="opt"><label><input type="checkbox" id="greeting" checked>Start with "Hello Name,"</label></div>
+  <div class="opt"><label><input type="checkbox" id="signature" checked>Add my signature at the bottom</label></div>
+
+  <details>
+    <summary>Attachments and button (optional)</summary>
+    <label class="l">Attach files from Drive</label>
+    <textarea class="small" id="attach" placeholder="Paste Drive file links, one per line"></textarea>
+    <div class="hint">Links to single files only. The account sending these emails needs access to each file. Max about 24 MB total.</div>
+    <label class="l">Button</label>
+    <div class="row">
+      <div><input type="text" id="buttonText" placeholder="Button text"></div>
+      <div><input type="text" id="buttonUrl" placeholder="https://link" autocapitalize="off" autocorrect="off"></div>
+    </div>
+  </details>
+</div>
+
+<div class="bar"><div class="in">
+  <div id="msg"></div>
+  <div class="btns">
+    <button class="light" id="testBtn" onclick="doTest()">Send me a test</button>
+    <button id="sendBtn" onclick="askSend()">Send</button>
+  </div>
+</div></div>
+
+</div>
+<div class="ov" id="ov">
+  <div class="box">
+    <h2 id="cTitle">Send this message?</h2>
+    <div id="cLead">It will go to:</div>
+    <div class="names" id="cNames"></div>
+    <div class="warn" id="cWarn"></div>
+    <div class="cb">
+      <button class="light" onclick="closeConfirm()">Cancel</button>
+      <button id="cYes" onclick="doSend()">Yes, send now</button>
+    </div>
+  </div>
+</div>
+
+<script>
+var people=[],selected={},filter='all',templates=[],cfg={signerName:'',signerTitle:''},undoBuf=null,DKEY='dfPhoneDraft',saveT=null,lastLoad=0,deferredPrompt=null,mem={};
+var URL_RE=/^https:\/\/script\.google\.com\/[^\s]+\/exec$/;
+function $(id){return document.getElementById(id);}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function mode(){return document.querySelector('input[name=mode]:checked').value;}
+function say(t){$('msg').textContent=t;}
+function busy(b){$('sendBtn').disabled=b;$('testBtn').disabled=b;}
+function wrongKey(m){return /^Wrong key/.test(m||'');}
+function fail(e){
+  var m=e&&e.message?e.message:String(e);
+  say('Something went wrong: '+m);busy(false);
+  if(wrongKey(m)){showSetup(true);$('setMsg').textContent='That key was not accepted. Paste the key again.';}
+}
+
+/* ---------- saved on this phone only ---------- */
+function lsGet(k){try{var x=localStorage.getItem(k);if(x!==null)return x;}catch(e){}return mem[k]||'';}
+function lsSet(k,v){mem[k]=v;try{localStorage.setItem(k,v);}catch(e){}}
+function lsDel(k){delete mem[k];try{localStorage.removeItem(k);}catch(e){}}
+
+/* ---------- talking to the Apps Script backend ---------- */
+function call(creds,action,payload){
+  var body=JSON.stringify(Object.assign({key:creds.key,action:action},payload||{}));
+  return fetch(creds.url,{method:'POST',body:body,redirect:'follow',credentials:'omit'})
+    .then(function(res){return res.text();})
+    .then(function(t){
+      var j;
+      try{j=JSON.parse(t);}catch(e){throw new Error('The server did not answer properly. Check the web app link, and that access is set to Anyone.');}
+      if(!j.ok)throw new Error(j.error||'Something went wrong.');
+      return j.data;
+    },function(){throw new Error('Could not reach the server. Check your internet and the web app link.');});
+}
+function api(action,payload){
+  var url=lsGet('dfUrl'),key=lsGet('dfKey');
+  if(!url||!key){showSetup(false);return Promise.reject(new Error('Connect this phone first.'));}
+  return call({url:url,key:key},action,payload);
+}
+
+/* ---------- connect / settings ---------- */
+function showSetup(fromSettings){
+  $('setup').style.display='block';$('app').style.display='none';
+  $('setUrl').value=lsGet('dfUrl');$('setKey').value='';$('showKey').checked=false;$('setKey').type='password';
+  $('setCancel').style.display=fromSettings?'block':'none';
+  $('setOff').style.display=fromSettings?'block':'none';
+  $('gear').style.display='none';
+  $('setMsg').textContent='';
+}
+function toggleKey(){$('setKey').type=$('showKey').checked?'text':'password';}
+function cancelSetup(){
+  if(!lsGet('dfUrl')||!lsGet('dfKey'))return;
+  $('setup').style.display='none';$('app').style.display='block';$('gear').style.display='block';
+}
+function doConnect(){
+  var url=$('setUrl').value.trim(),key=$('setKey').value.trim();
+  if(!URL_RE.test(url)){$('setMsg').textContent='The link should start with https://script.google.com/ and end with /exec';return;}
+  if(!key){$('setMsg').textContent='Paste your key.';return;}
+  $('setBtn').disabled=true;$('setMsg').textContent='Connecting...';
+  call({url:url,key:key},'ping').then(function(){
+    lsSet('dfUrl',url);lsSet('dfKey',key);
+    $('setBtn').disabled=false;
+    startApp();
+  },function(e){
+    $('setBtn').disabled=false;$('setMsg').textContent=e.message;
+  });
+}
+function doDisconnect(){
+  if(!confirm('Disconnect this phone? The key and any saved draft are removed from it.'))return;
+  lsDel('dfUrl');lsDel('dfKey');
+  discardDraft();
+  people=[];templates=[];
+  showSetup(false);
+}
+function startApp(){
+  $('setup').style.display='none';$('app').style.display='block';$('gear').style.display='block';
+  modeChange();
+  loadPeople();
+  loadTemplates();
+}
+
+/* ---------- install banner ---------- */
+function isStandalone(){try{return (window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true;}catch(e){return false;}}
+function showInstall(){
+  if(isStandalone()||lsGet('dfInstallNo'))return;
+  var ios=/iPhone|iPad|iPod/.test(navigator.userAgent);
+  if(deferredPrompt){$('instText').textContent='Install this as an app on your phone: its own icon, full screen, no browser bar.';$('instBtn').style.display='inline-block';}
+  else if(ios){$('instText').textContent='To install: tap Share, then Add to Home Screen.';$('instBtn').style.display='none';}
+  else return;
+  $('install').style.display='block';
+}
+window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferredPrompt=e;showInstall();});
+window.addEventListener('appinstalled',function(){$('install').style.display='none';deferredPrompt=null;});
+function doInstall(){
+  if(!deferredPrompt)return;
+  deferredPrompt.prompt();
+  if(deferredPrompt.userChoice)deferredPrompt.userChoice.then(function(){deferredPrompt=null;$('install').style.display='none';});
+}
+function noInstall(){lsSet('dfInstallNo','1');$('install').style.display='none';}
+
+function modeChange(){
+  var m=mode();
+  var needsAddr=(m==='address'||m==='reply');
+  $('volBox').style.display=(m==='volunteers')?'block':'none';
+  $('addrBox').style.display=needsAddr?'block':'none';
+  $('lookupRow').style.display=(m==='reply')?'block':'none';
+  $('replyHint').style.display=(m==='reply')?'block':'none';
+  $('subjectBox').style.display=(m==='reply')?'none':'block';
+  $('address').placeholder=(m==='reply')?'The address they wrote to you from':'their@email.com';
+  say('');
+  phCheck();
+  queueSave();
+}
+
+/* ---------- volunteers ---------- */
+function loadPeople(){
+  if(!people.length)$('plist').textContent='Loading volunteers...';
+  api('volunteers').then(function(r){people=r||[];lastLoad=Date.now();render();})
+    .catch(function(e){
+      $('plist').textContent='Could not load volunteers: '+(e&&e.message?e.message:e)+' You can still use One address or Reply.';
+      if(e&&wrongKey(e.message))fail(e);
+    });
+}
+function visible(p){
+  if(filter==='new'&&p.sent)return false;
+  if(filter==='sent'&&!p.sent)return false;
+  var q=$('q').value.toLowerCase();
+  if(q&&(p.name+' '+p.email).toLowerCase().indexOf(q)===-1)return false;
+  return true;
+}
+function chosen(){return people.filter(function(p){return selected[p.email];});}
+function updCount(){$('count').textContent=chosen().length+' selected';}
+function render(){
+  var html='';
+  people.forEach(function(p,i){
+    if(!visible(p))return;
+    html+='<label class="vrow"><input type="checkbox" data-i="'+i+'"'+(selected[p.email]?' checked':'')+'><span><b>'+esc(p.name||p.email)+'</b><br><small>'+esc(p.email)+'</small>'+(p.sent?'<br><small class="sent">'+esc(p.sent)+'</small>':'')+'</span></label>';
+  });
+  $('plist').innerHTML=html||'<div class="hint" style="padding:12px">'+(people.length?'No matches.':'No volunteers found.')+'</div>';
+  updCount();
+}
+function setFilter(f){
+  filter=f;
+  ['all','new','sent'].forEach(function(k){$('f_'+k).className='chip'+(k===f?' on':'');});
+  render();
+}
+function selShown(){people.forEach(function(p){if(visible(p))selected[p.email]=true;});render();queueSave();}
+function clearSel(){selected={};render();queueSave();}
+
+/* ---------- templates ---------- */
+function fillSig(s){
+  s=String(s||'');
+  if(cfg.signerTitle)s=s.split('{Your title}, Delta Flow').join(cfg.signerTitle).split('{Your title}').join(cfg.signerTitle);
+  if(cfg.signerName)s=s.split('{Your name}').join(cfg.signerName);
+  return s;
+}
+function loadTemplates(){
+  api('templates').then(function(r){
+    cfg.signerName=r.signerName||'';cfg.signerTitle=r.signerTitle||'';
+    templates=r.templates||[];
+    if(templates.length){buildTplCats();$('tplBox').style.display='block';}
+  }).catch(function(){});
+}
+function buildTplCats(){
+  var seen={},html='<option value="">Choose a category</option>';
+  templates.forEach(function(t){var c=t.cat||'Other';if(!seen[c]){seen[c]=1;html+='<option>'+esc(c)+'</option>';}});
+  $('tplCat').innerHTML=html;
+  tplCatChange();
+}
+function tplCatChange(){
+  var c=$('tplCat').value,html='<option value="">'+(c?'Choose a template':'Pick a category first')+'</option>';
+  if(c){templates.forEach(function(t,i){if((t.cat||'Other')===c)html+='<option value="'+i+'">'+esc((t.id?t.id+'  ':'')+(t.use||t.subject))+'</option>';});}
+  $('tplPick').innerHTML=html;
+}
+function useTemplate(){
+  var v=$('tplPick').value;
+  if(v===''){say('Pick a template first.');return;}
+  var t=templates[parseInt(v,10)];
+  undoBuf={subject:$('subject').value,message:$('message').value,greeting:$('greeting').checked,signature:$('signature').checked};
+  if(mode()!=='reply')$('subject').value=fillSig(t.subject);
+  $('message').value=fillSig(t.body);
+  $('greeting').checked=false;
+  $('signature').checked=false;
+  $('tplNote').innerHTML='Template added. It has its own greeting and sign-off, so those two boxes are off. <a href="#" onclick="undoTpl();return false">Undo</a>';
+  say('');
+  phCheck();
+  queueSave();
+}
+function undoTpl(){
+  if(!undoBuf)return;
+  $('subject').value=undoBuf.subject;
+  $('message').value=undoBuf.message;
+  $('greeting').checked=undoBuf.greeting;
+  $('signature').checked=undoBuf.signature;
+  undoBuf=null;
+  $('tplNote').textContent='';
+  phCheck();
+  queueSave();
+}
+
+/* ---------- placeholders still to fill in ---------- */
+function phList(){
+  var s=$('message').value+(mode()==='reply'?'':' '+$('subject').value);
+  var found=s.match(/[{][^{}]+[}]/g)||[],out=[];
+  found.forEach(function(x){
+    if(/^[{]name[}]$/i.test(x))return;
+    if(out.indexOf(x)===-1)out.push(x);
+  });
+  return out;
+}
+function phCheck(){
+  var l=phList(),el=$('ph');
+  if(l.length){el.style.display='block';el.textContent='Still to fill in: '+l.join(', ');}
+  else{el.style.display='none';el.textContent='';}
+}
+
+/* ---------- draft saved on this phone ---------- */
+function saveDraft(){
+  try{
+    localStorage.setItem(DKEY,JSON.stringify({
+      mode:mode(),address:$('address').value,addrName:$('addrName').value,subject:$('subject').value,message:$('message').value,
+      greeting:$('greeting').checked,signature:$('signature').checked,attach:$('attach').value,
+      buttonText:$('buttonText').value,buttonUrl:$('buttonUrl').value,
+      sel:Object.keys(selected).filter(function(k){return selected[k];})
+    }));
+  }catch(e){}
+}
+function queueSave(){clearTimeout(saveT);saveT=setTimeout(saveDraft,400);}
+function clearDraft(){clearTimeout(saveT);try{localStorage.removeItem(DKEY);}catch(e){}}
+function loadDraft(){
+  try{
+    var s=localStorage.getItem(DKEY);
+    if(!s)return false;
+    var d=JSON.parse(s);
+    if(!d||!(String(d.subject||'').trim()||String(d.message||'').trim()))return false;
+    var r=document.querySelector('input[name=mode][value='+(d.mode||'volunteers')+']');
+    if(r)r.checked=true;
+    $('address').value=d.address||'';$('addrName').value=d.addrName||'';
+    $('subject').value=d.subject||'';$('message').value=d.message||'';
+    $('greeting').checked=!!d.greeting;$('signature').checked=!!d.signature;
+    $('attach').value=d.attach||'';$('buttonText').value=d.buttonText||'';$('buttonUrl').value=d.buttonUrl||'';
+    selected={};(d.sel||[]).forEach(function(e){selected[e]=true;});
+    $('draftNote').style.display='block';
+    return true;
+  }catch(e){return false;}
+}
+function discardDraft(){
+  clearDraft();
+  ['address','addrName','subject','message','attach','buttonText','buttonUrl'].forEach(function(id){$(id).value='';});
+  $('greeting').checked=true;$('signature').checked=true;
+  selected={};render();phCheck();
+  $('draftNote').style.display='none';
+}
+
+/* ---------- send ---------- */
+function gather(){
+  var m=mode();
+  var o={
+    mode:m,
+    address:$('address').value,
+    addrName:$('addrName').value,
+    subject:$('subject').value,
+    message:$('message').value,
+    greeting:$('greeting').checked,
+    signature:$('signature').checked,
+    attachLinks:$('attach').value,
+    buttonText:$('buttonText').value,
+    buttonUrl:$('buttonUrl').value
+  };
+  if(m==='volunteers')o.people=chosen().map(function(p){return {name:p.name,email:p.email};});
+  return o;
+}
+function check(o){
+  if(o.mode!=='reply'&&!o.subject.trim())return 'Please add a subject.';
+  if(!o.message.trim())return 'Please write a message.';
+  if((o.mode==='address'||o.mode==='reply')&&!/^[^ @]+@[^ @]+[.][^ @]+$/.test(o.address.trim()))return 'Please enter a valid email address.';
+  if(o.mode==='volunteers'&&!o.people.length)return 'Pick at least one volunteer.';
+  if((o.buttonText.trim()&&!/^https?:[/][/]/i.test(o.buttonUrl.trim()))||(!o.buttonText.trim()&&o.buttonUrl.trim()))return 'For a button, fill in both the text and a link starting with https://';
+  return '';
+}
+function doLookup(){
+  var a=$('address').value.trim();
+  if(!a){say('Type their email address first.');return;}
+  say('Looking...');
+  api('lookup',{address:a}).then(function(r){
+    say('Found: "'+r.subject+'" from '+(r.name||a)+' ('+r.date+')');
+  }).catch(fail);
+}
+function doTest(){
+  var o=gather(),err=check(o);
+  if(err){say(err);return;}
+  busy(true);say('Sending test...');
+  api('test',o).then(function(addr){say('Test sent to '+addr+'.');busy(false);}).catch(fail);
+}
+function showConfirm(title,lead,html){
+  var l=phList();
+  $('cTitle').textContent=title;
+  $('cLead').textContent=lead;
+  $('cNames').innerHTML=html;
+  $('cWarn').style.display=l.length?'block':'none';
+  $('cWarn').textContent=l.length?'This message still has: '+l.join(', ')+'. Those will be sent exactly as shown.':'';
+  $('cYes').textContent=l.length?'Send anyway':'Yes, send now';
+  $('ov').className='ov show';
+}
+function askSend(){
+  var o=gather(),err=check(o);
+  if(err){say(err);return;}
+  if(o.mode==='reply'){
+    say('Looking for their email...');
+    api('lookup',{address:o.address}).then(function(r){
+      say('');
+      showConfirm('Send this reply?','The reply will go to:','<b>'+esc(r.name||o.address.trim())+'</b><br>In the thread: '+esc(r.subject)+'<br>('+esc(r.date)+')');
+    }).catch(fail);
+    return;
+  }
+  var who;
+  if(o.mode==='address'){who=esc((o.addrName?o.addrName+' - ':'')+o.address.trim());}
+  else{
+    var names=o.people.slice(0,12).map(function(p){return esc(p.name||p.email);});
+    who=names.join('<br>');
+    if(o.people.length>12)who+='<br>...and '+(o.people.length-12)+' more';
+  }
+  showConfirm('Send this message?','It will go to '+(o.mode==='volunteers'?o.people.length+' '+(o.people.length===1?'person':'people'):'1 person')+':',who);
+}
+function closeConfirm(){$('ov').className='ov';}
+function doSend(){
+  closeConfirm();
+  var o=gather();
+  busy(true);say('Sending...');
+  api('send',o).then(function(r){
+    var m='Sent '+r.sent+' email(s).';
+    if(r.note)m=r.note;
+    if(r.failed&&r.failed.length)m+=' Could not send to: '+r.failed.join(', ');
+    say(m);busy(false);
+    selected={};render();clearDraft();
+  }).catch(fail);
+}
+
+$('plist').addEventListener('change',function(ev){
+  var t=ev.target,i=t.getAttribute('data-i');
+  if(i!==null&&people[i]){selected[people[i].email]=t.checked;updCount();}
+});
+document.addEventListener('input',function(){phCheck();queueSave();});
+document.addEventListener('change',function(){queueSave();});
+document.addEventListener('visibilitychange',function(){
+  if(!document.hidden&&$('app').style.display!=='none'&&lsGet('dfKey')&&Date.now()-lastLoad>120000)loadPeople();
+});
+if('serviceWorker' in navigator){
+  window.addEventListener('load',function(){try{navigator.serviceWorker.register('./sw.js').catch(function(){});}catch(e){}});
+}
+
+/* ---------- start ---------- */
+loadDraft();
+showInstall();
+if(lsGet('dfUrl')&&lsGet('dfKey'))startApp();else showSetup(false);
+</script></body></html>
